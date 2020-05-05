@@ -24,7 +24,7 @@ PubSubClient client(espclient); // Setup MQTT client
 
 void setup() {
  
-  Serial.begin(9600);
+  Serial.begin(9600); 
  
   WiFi.begin(ssid, password);
   dht.begin();
