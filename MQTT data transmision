@@ -1,0 +1,83 @@
+#include <ESP8266WiFi.h>
+#include <PubSubClient.h>
+#include "DHT.h"
+
+char data[80];
+
+#define DHTPIN D6
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
+
+const char* ssid = "Ghita";
+const char* password =  "placinta28";
+const char* mqttServer = "mqtt.beia-telemetrie.ro";
+const int mqttPort = 1883;
+const char* mqttUser = "";
+const char* mqttPassword = "";
+const char* topic = "training/esp/irina-negrea";
+
+WiFiClient espclient;
+
+PubSubClient client(espclient); // Setup MQTT client
+
+// Connect to WiFi network
+
+void setup() {
+ 
+  Serial.begin(9600);
+ 
+  WiFi.begin(ssid, password);
+  dht.begin();
+  
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.println("Connecting to WiFi..");
+  }
+  Serial.println("Connected to the WiFi network");
+ 
+  client.setServer(mqttServer, mqttPort);
+  //client.setCallback(callback);
+ 
+  while (!client.connected()) {
+    Serial.println("Connecting to MQTT...");
+ 
+    if (client.connect("ESP8266Client", mqttUser, mqttPassword )) 
+    {
+ 
+      Serial.println("connected");  
+ 
+    } 
+    else {
+ 
+      Serial.print("failed with state ");
+      Serial.print(client.state());
+      delay(2000);
+ 
+    }
+  }
+}
+
+void loop() {
+ 
+  client.loop();
+
+ // Reading temperature or humidity takes about 250 milliseconds!
+  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
+  float h = dht.readHumidity();
+  // Read temperature as Celsius
+  float t = dht.readTemperature();
+
+String strt = String (t);
+String strh = String (h);
+
+ String thisString = "{\"TEMP\":" + String(t) + ", \"HUMID\":" + String(h) + "}";
+
+ thisString.toCharArray(data,(thisString.length()+1)); 
+ client.publish("training/esp/irina-negrea", data);
+ 
+ //{"TEMP":24,"HUMID":10}
+ //Serial.println(String(topic) + " => on");
+   
+    
+      delay(2000);
+    }
